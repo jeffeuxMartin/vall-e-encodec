@@ -5,8 +5,12 @@ import jsonlines
 import torch
 from datasets import load_dataset
 
-from speech2unit_model.hubert import hubert_layer9_code500, hubert_layer6_code50, hubert_layer6_code100, \
+from speech2unit_model.hubert import (
+    hubert_layer9_code500, 
+    hubert_layer6_code50, 
+    hubert_layer6_code100, 
     hubert_layer6_code200
+)
 from speech2unit_model.mhubert import mhubert_layer11_code1000
 
 ModelMap = {
@@ -35,12 +39,15 @@ def parse_args(args):
 
 
 def main(arg=None):
-    input_arg, model_arg = parse_args(sys.argv[1:]) if arg is None else parse_args(arg)
+    input_arg, model_arg = (parse_args(sys.argv[1:]) 
+                            if arg is None else 
+                            parse_args(arg))
     dataset = load_dataset(input_arg['ds'], input_arg['ds_split'])
     hc_model = ModelMap[input_arg['model']]()
 
     def convert_code_fn(data):
-        hubert = hc_model(input_values=torch.from_numpy(data['audio']['array'].astype('float32')).unsqueeze(0),
+        hubert = hc_model(input_values=torch.from_numpy(data['audio']['array']
+                                         .astype('float32')).unsqueeze(0),
                           feat_norm=input_arg['feat_norm'],
                           beamsearch=input_arg['beamsearch'],
                           top_k=100,
@@ -67,7 +74,14 @@ def main(arg=None):
             json_items.append(d)
 
         with jsonlines.open(
-                f'./{input_arg["ds"].replace("/", "_")}_{input_arg["ds_split"]}_{k}_chunk_{input_arg["chunk_sec"]}_{input_arg["model"]}_norm_{input_arg["feat_norm"]}_beam_{input_arg["beamsearch"]}_topk_{input_arg["topk"]}_beamsize_{input_arg["beamsize"]}.jsonl',
+                f'./{input_arg["ds"].replace("/", "_")}_'
+                f'{input_arg["ds_split"]}_'
+                f'{k}_chunk_{input_arg["chunk_sec"]}_'
+                f'{input_arg["model"]}'
+                f'_norm_{input_arg["feat_norm"]}'
+                f'_beam_{input_arg["beamsearch"]}'
+                f'_topk_{input_arg["topk"]}'
+                f'_beamsize_{input_arg["beamsize"]}.jsonl',
                 mode='w') as writer:
             writer.write_all(json_items)
 
